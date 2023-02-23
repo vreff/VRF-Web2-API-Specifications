@@ -1,0 +1,131 @@
+openapi: 3.0.0
+servers:
+  - url: "http://chain.link/api/vrf-web2/v1"
+info:
+  description: >-
+    Chainlink VRF Web2 API specifications, version 1.0.0.
+  version: 1.0.0
+  title: Chainlink VRF Web2 API specifications
+tags:
+  - name: request
+    description: For making on-chain VRF requests.
+  - name: retrieve
+    description: For retrieving randomness.
+paths:
+  /randomness:
+    post:
+      tags:
+        - request
+      summary: Request randomness from Chainlink VRF.
+      description: ""
+      operationId: requestRandomness
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/vrfRequestPayload"
+      requestBody:
+        $ref: "#/components/requestBodies/vrfRequestBody"
+    get:
+      tags:
+        - retrieve
+      summary: Retrieves the result of a VRF request.
+      description: ""
+      operationId: getRandomness
+      parameters:
+        - name: requestID
+          in: query
+          description: Request ID of the Chainlink VRF request.
+          required: true
+          style: form
+          schema:
+            type: int64
+            example: 79
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/getRandomnessPayload"
+  /verify:
+    get:
+      tags:
+        - retrieve
+      summary: Verifies the result of a VRF request.
+      description: ""
+      operationId: verifyRandomness
+      parameters:
+        - name: requestID
+          in: query
+          description: The request ID of the Chainlink VRF request
+          required: true
+          style: form
+          schema:
+            type: int64
+            example: 79
+        - name: randomness
+          in: query
+          description: The randomness retrieved from the Chainlink VRF request
+          required: true
+          style: form
+          schema:
+            type: int256
+            example: 79858736628595746362811
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/verifyRandomnessPayload"
+components:
+  requestBodies:
+    vrfRequestBody:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/vrfRequestBody"
+      description: A Chainlink VRF request.
+      required: true
+  schemas:
+    vrfRequestPayload:
+      title: Translation request payload
+      description: Payload from a Chainlink VRF request
+      type: object
+      properties:
+        requestID:
+          type: integer
+          format: int64
+    getRandomnessPayload:
+      title: getRandomness payload
+      description: The randomness generated for this VRF request. If not yet generated, randomness will be 0.
+      type: object
+      properties:
+        randomness:
+          type: int64
+    verifyRandomnessPayload:
+      title: verifyRandomness payload
+      description: The verification result for a VRF request. If the randomness provided matches the on-chain result, verified is be true. Otherwise, verified is false.
+      type: object
+      properties:
+        verified:
+          type: boolean
+    vrfRequestBody:
+      title: VRF Request body
+      description: The body of a Chainlink VRF request
+      type: object
+      required:
+        - subID
+        - signature
+      properties:
+        subID:
+          type: integer
+          format: int64
+          example: 1
+        signature:
+          type: string
+          description: The VRF transaction to be executed on-chain, signed by its end-user
+          example: '0x123...'
